@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 
 '''
     STK-Unit Command line tool
@@ -18,53 +18,108 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import argparse
+import cmd
 import conFile
 import dbcon
-import connWizard
-
-class stkc(object):
-
-    def hProg(self):
-            print("")
-            print("STK-Unit Command line tool")
-            print("Copyright (C) 2013")
-            print("Giacomo Picchiarelli <gpicchiarelli@gmail.com>")
-            print("Federico Razzoli <santec@riseup.net>")
-            print("")
-
-    def addConnection(self,name):
-        print("connection added " + name)
-
-    def openConnection(self,name):
-        cf = conFile.conFile()
-        cf.setUpConnectionRegistry(name)
-        dd_db = dbcon.dbconManager(cf.host,cf.db,cf.user,cf.pwd)
-        dd_db.openConnection();
-
-    def deleteConnection(self,name):
-        print("connection del " + name  )
+import socket
 
 
-    def __init__(self):
+class stkc(cmd.Cmd):
+    prompt = '> stkc@' + socket.gethostname() + '$ '
+    intro = """
+    stkc - STK-Unit Command line tool
+    Copyright (C) 2013
+    Giacomo Picchiarelli <gpicchiarelli@gmail.com>
+    Federico Razzoli <santec@riseup.net>
+    https://launchpad.net/~stk-unit-team
+    """
 
-        parser = argparse.ArgumentParser()
-        parser.add_argument("-ca","--conadd", help="Add a new connection")
-        parser.add_argument("-co","--conopen", help="Open selected connection")
-        parser.add_argument("-cd","--condel", help="Delete selected connection")
-        parser.add_argument("-cl","--conlist", help="List all connections", action='store_true')
+    def do_upgrade(self, arg):
+        'Upgrade STK for connection selected before.'
+        self.cf = conFile.conFile()
+        print(("upgraded " + arg))
 
-        args = parser.parse_args()
+    def do_install(self, arg):
+        'Install STK for connection selected before.'
+        try:
+            op = self.database.executeFile('stk-unit/sql/stk_unit.sql')
+            print("STK Installed")
+            print (op)
+        except AttributeError, e1:
+            print(e1)
+        except Exception, e:
+            print(e)
 
-        if args.conadd:
-            self.addConnection(args.conadd)
-        if args.condel:
-            self.deleteConnection(args.condel)
-        if args.conopen:
-            self.openConnection(args.conopen)
+    def do_sql(self, arg):
+        'Execute sql statement'
+        try:
+            self.database.executeStatement(arg)
+            print(arg)
+            print ("Executed")
+        except Exception, e:
+            print(e)
+
+    def do_executeUnit(self, arg):
+        'Execute .sql file located in units'
+        try:
+            self.database.executeFile('units/' + arg)
+            print(arg)
+            print ("Executed")
+        except Exception, e:
+            print(e)
+
+    def do_list(self, arg):
+        'list available connections'
+        self.cf = conFile.conFile()
+        print((self.cf.listConnections()))
+
+    def do_add(self, arg):
+        'Add a new connection in settings'
+        self.cf = conFile.conFile()
+        print(("connection added " + arg))
+
+    def do_open(self, arg):
+        'Open DB Connection'
+        try:
+            cf = conFile.conFile()
+            cf.setUpConnectionRegistry(arg)
+            dd_db = dbcon.dbconManager(cf.host, cf.db, cf.user,
+                                       cf.pwd, cf.port)
+            dd_db.openConnection()
+            self.database = dd_db
+            self.cf = cf
+            print("Connection OK.")
+        except Exception, e:
+            print(e)
+
+    def do_close(self, arg):
+        'Close active connection'
+        try:
+            self.database.closeConnection()
+            print(("Connection closed [" + self.cf.name + "]"))
+            self.cf = None
+        except Exception, e:
+            print(e)
+
+    def do_delConn(self, arg):
+        'Delete Connection'
+        self.cf = conFile.conFile()
+        print("connection del " + arg)
+
+    def do_exit(self, arg):
+        'Exit program.'
+        print('Thank you. Bye.')
+        exit()
+
+
+def parse(arg):
+    try:
+        return tuple(map(int, arg.split()))
+    except Exception, e:
+        print(e)
 
 if __name__ == "__main__":
-    I1 = stkc()
-
-
-
+    try:
+        stkc().cmdloop()
+    except KeyboardInterrupt, e:
+        print("Forced quit")

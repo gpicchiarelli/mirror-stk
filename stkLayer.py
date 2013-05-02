@@ -20,6 +20,6 @@ import dbcon
 import sys
 
 class stkLayer(object):
-    
+
     def __init__(self):
         self.flag = "layer"

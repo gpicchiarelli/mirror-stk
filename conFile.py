@@ -20,21 +20,25 @@
 
 import ConfigParser
 
+
 class conFile(object):
 
-    def __init__(self):     
-        config = ConfigParser.ConfigParser()   
-        config.readfp(open('stkc.cfg'))        
+    def __init__(self):
+        config = ConfigParser.ConfigParser()
+        config.readfp(open('stkc.cfg'))
         self.config = config
-        
-    
-    def setUpConnectionRegistry(self,name_connection):
-        self.name = self.config.get(name_connection, 'NAME')  
-        self.host = self.config.get(name_connection, 'HOST')  
-        self.user = self.config.get(name_connection, 'USER')  
-        self.pwd = self.config.get(name_connection, 'PWD')  
-        self.db = self.config.get(name_connection, 'DB')  
- 
-        
 
-    
+    def listConnections(self):
+        listal = self.config.sections()
+        return listal[0:len(listal) - 1]
+
+    def setUpConnectionRegistry(self, name_connection):
+        self.name = self.config.get(name_connection, 'NAME')
+        self.host = self.config.get(name_connection, 'HOST')
+        self.user = self.config.get(name_connection, 'USER')
+        self.pwd = self.config.get(name_connection, 'PWD')
+        self.db = self.config.get(name_connection, 'DB')
+        try:
+            self.port = int(self.config.get(name_connection, 'PORT'))
+        except Exception, e:
+            print(e)
