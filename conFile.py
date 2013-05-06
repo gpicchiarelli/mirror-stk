@@ -18,13 +18,16 @@
 
 # RFC #733  Compliant
 
-import ConfigParser
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 
 
 class conFile(object):
 
     def __init__(self):
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.readfp(open('stkc.cfg'))
         self.config = config
 
@@ -40,5 +43,9 @@ class conFile(object):
         self.db = self.config.get(name_connection, 'DB')
         try:
             self.port = int(self.config.get(name_connection, 'PORT'))
-        except Exception, e:
+        except Exception as e:
             print(e)
+
+    def removeConnection(self, connection):
+        if (connection.strip() != 'ALIAS'):
+            self.config.remove_section(connection)

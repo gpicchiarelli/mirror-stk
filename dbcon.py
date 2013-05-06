@@ -40,7 +40,8 @@ class dbconManager(object):
                                               db=self.db)
             self.inner_conn.set_server_option(self.MULTI_STATEMENTS_ON)
         except:
-            print self._exc_error + " -- Unexpected error:", sys.exc_info()[1]
+            print((self._exc_error + " -- Unexpected error:",
+                  sys.exc_info()[1]))
             raise
 
     def executeFile(self, filename):
@@ -60,20 +61,20 @@ class dbconManager(object):
             self.inner_conn.set_server_option(self.MULTI_STATEMENTS_OFF)
         except:
             self.inner_conn.rollback()
-            print self._exc_error + "Unexpected error:", sys.exc_info()[0]
+            print((self._exc_error + "Unexpected error:", sys.exc_info()[0]))
             raise
 
     def executeStatement(self, sql):
         try:
             cursor = self.inner_conn.cursor()
             cursor.execute(sql)
-            res = cursor.fetchone()
+            res = cursor.fetchall()
             self.inner_conn.commit()
-            self.inner_cursor.close()
+            cursor.close()
             return res
         except:
             self.inner_conn.rollback()
-            print self._exc_error + "Unexpected error:", sys.exc_info()[0]
+            print((self._exc_error + "Unexpected error:", sys.exc_info()[0]))
             raise
 
     def closeConnection(self):
@@ -82,5 +83,5 @@ class dbconManager(object):
             #avoid some connection issues
             gc.collect()
         except:
-            print self._exc_error + "Unexpected error:", sys.exc_info()[0]
+            print((self._exc_error + "Unexpected error:", sys.exc_info()[0]))
             raise

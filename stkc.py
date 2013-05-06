@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 '''
     STK-Unit Command line tool
@@ -22,6 +22,7 @@ import cmd
 import conFile
 import dbcon
 import socket
+from datetime import datetime
 
 
 class stkc(cmd.Cmd):
@@ -45,18 +46,24 @@ class stkc(cmd.Cmd):
             op = self.database.executeFile('stk-unit/sql/stk_unit.sql')
             print("STK Installed")
             print (op)
-        except AttributeError, e1:
+        except AttributeError as e1:
             print(e1)
-        except Exception, e:
+        except Exception as e:
             print(e)
 
     def do_sql(self, arg):
         'Execute sql statement'
         try:
-            self.database.executeStatement(arg)
-            print(arg)
-            print ("Executed")
-        except Exception, e:
+            a = datetime.now()
+            res = self.database.executeStatement(arg)
+            b = datetime.now()
+            c = b - a
+            for itt in res:
+                print(itt)
+            tt = float(c.microseconds / 1000.0)
+            print(' ------------------ ')
+            print(('Done. ' + str(tt) + '(ms)'))
+        except Exception as e:
             print(e)
 
     def do_executeUnit(self, arg):
@@ -65,7 +72,7 @@ class stkc(cmd.Cmd):
             self.database.executeFile('units/' + arg)
             print(arg)
             print ("Executed")
-        except Exception, e:
+        except Exception as e:
             print(e)
 
     def do_list(self, arg):
@@ -89,7 +96,7 @@ class stkc(cmd.Cmd):
             self.database = dd_db
             self.cf = cf
             print("Connection OK.")
-        except Exception, e:
+        except Exception as e:
             print(e)
 
     def do_close(self, arg):
@@ -98,13 +105,13 @@ class stkc(cmd.Cmd):
             self.database.closeConnection()
             print(("Connection closed [" + self.cf.name + "]"))
             self.cf = None
-        except Exception, e:
+        except Exception as e:
             print(e)
 
     def do_delConn(self, arg):
         'Delete Connection'
         self.cf = conFile.conFile()
-        print("connection del " + arg)
+        self.cf.removeConnection(arg)
 
     def do_exit(self, arg):
         'Exit program.'
@@ -115,11 +122,11 @@ class stkc(cmd.Cmd):
 def parse(arg):
     try:
         return tuple(map(int, arg.split()))
-    except Exception, e:
+    except Exception as e:
         print(e)
 
 if __name__ == "__main__":
     try:
         stkc().cmdloop()
-    except KeyboardInterrupt, e:
+    except KeyboardInterrupt as e:
         print("Forced quit")
